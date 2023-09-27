@@ -635,6 +635,7 @@ champ
 chant
 chaos
 chaps
+chard
 charm
 chars
 chart
