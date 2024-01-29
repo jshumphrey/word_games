@@ -2,9 +2,11 @@
 """This is a simple script to help output valid Wordle words that might make
 good guesses, based on the feedback received about previous guesses."""
 
+from __future__ import annotations
+
 import textwrap  # Used to pretty-print long blocks of text so that they appear nicely
 import typing  # Used for type-checking throughout the script
-from typing import Any, Callable, Iterator, Sequence, Optional, Self
+from typing import Any, Callable, Iterator, Sequence, Optional
 from tqdm import tqdm  # Used to display progress bars for long-running operations
 
 Position = int
@@ -70,7 +72,7 @@ class Word:
             f">"
         )
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: Word) -> bool:
         return self.full_word == other.full_word
 
     def __getitem__(self, position: int) -> Letter:
@@ -95,7 +97,7 @@ class Word:
 
         return round(sum(frequency_dict[letter] for letter in self.letters) * 100, 3)
 
-    def calculate_guess_results(self, guessed_word: Self) -> str:
+    def calculate_guess_results(self, guessed_word: Word) -> str:
         """This takes in a guessed word and returns the Wordle results string.
         In other words, this pretends that this Word is being used as the target
         word in a Wordle game, and the guessed word is an attempt to solve the Wordle.
@@ -173,7 +175,7 @@ class WordList:
     def __bool__(self) -> bool:
         return self._words != []
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: WordList) -> bool:
         return set(self) == set(other)
 
     def __contains__(self, word: Word) -> bool:
@@ -185,16 +187,16 @@ class WordList:
     def __iter__(self) -> Iterator[Word]:
         yield from self._words
 
-    def __add__(self, other: Self) -> Self:
+    def __add__(self, other: WordList) -> WordList:
         """Using dict.fromkeys preserves the insert order of the combined list,
         while removing duplicates."""
         return WordList(list(dict.fromkeys(self._words + other._words)))
 
-    def __radd__(self, other: Self) -> Self:
+    def __radd__(self, other: WordList) -> WordList:
         return other.__add__(self)
 
     @typing.overload
-    def __getitem__(self, key: slice) -> Self:
+    def __getitem__(self, key: slice) -> WordList:
         pass
 
     @typing.overload
@@ -214,12 +216,12 @@ class WordList:
         )
 
     @classmethod
-    def from_file(cls, filename: str) -> Self:
+    def from_file(cls, filename: str) -> WordList:
         """This sets up a WordList by reading Words from a text file."""
         with open(filename, "r", encoding = "utf-8") as infile:
             return cls([line.strip() for line in infile.readlines() if line])
 
-    def copy(self) -> Self:
+    def copy(self) -> WordList:
         """This returns a deep copy of this WordList."""
         return WordList(self._words[:])
 
@@ -248,7 +250,7 @@ class WordList:
         self.frequency_sort()
         return self[0]
 
-    def apply_masks(self, masks: list["Mask"]) -> Self:
+    def apply_masks(self, masks: list["Mask"]) -> WordList:
         """This returns a WordList of all of the Words in this WordList
         that meet ALL of the filtering criteria in the provided Masks."""
 
@@ -364,14 +366,14 @@ class Mask:
             f">"
         )
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: Mask) -> bool:
         return all([
             self.correct_positions == other.correct_positions,
             self.incorrect_positions == other.incorrect_positions,
             self.incorrect_globals == other.incorrect_globals,
         ])
 
-    def __add__(self, other: Self) -> Self:
+    def __add__(self, other: Mask) -> Mask:
         """This combines two Masks together to yield a new Mask
         that incorporates the information from both."""
 
@@ -420,7 +422,7 @@ class Mask:
             max_occurrences = self.max_occurrences | other.max_occurrences,
         )
 
-    def __radd__(self, other: Self) -> Self:
+    def __radd__(self, other: Mask) -> Mask:
         return self.__add__(other)
 
     @classmethod
@@ -501,7 +503,7 @@ class Mask:
             max_occurrences = max_occurrences,
         )
 
-    def info_guess_version(self) -> Self:
+    def info_guess_version(self) -> Mask:
         """An "informational guess version" of a Mask assumes that it's being used
         not to try to solve the Wordle, but to get as much information as possible,
         for use in an upcoming guess.
