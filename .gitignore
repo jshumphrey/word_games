@@ -1,5 +1,4 @@
 .venv
 .vscode
 dist
-words_alpha.txt
 __pycache__/*
