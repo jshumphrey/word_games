@@ -1,0 +1,25 @@
+[project]
+name = "word_games"
+description = """A Python library to help generate optimal solutions to various word games."""
+authors = [
+    {name = "Jackson Humphrey"},
+]
+classifiers = [
+    "Operating System :: OS Independent",
+]
+
+version = "1.0.0"
+requires-python = ">= 3.12.7"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch]
+
+[tool.hatch.build]
+include = [
+    "/word_games",
+    "/tests",
+    "/data_files",
+]
