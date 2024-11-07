@@ -2,7 +2,7 @@
 """This tests elements of the wordle_helper script."""
 
 import unittest
-import word_games.wordle_helper as wordle
+from word_games import wordle
 from word_games.word_games_base import TESTS_DIRPATH
 
 unittest.util._MAX_LENGTH = 999999999 # type: ignore  pylint: disable = protected-access

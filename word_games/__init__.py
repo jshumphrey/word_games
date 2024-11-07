@@ -3,4 +3,4 @@
 from .word_games_base import *
 
 from . import letter_boxed
-from . import wordle_helper
+from . import wordle
