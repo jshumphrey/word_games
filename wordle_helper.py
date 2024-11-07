@@ -4,10 +4,11 @@ good guesses, based on the feedback received about previous guesses."""
 
 from __future__ import annotations
 
+from collections.abc import Callable, Iterator, Sequence
 import functools
 import textwrap  # Used to pretty-print long blocks of text so that they appear nicely
 import typing  # Used for type-checking throughout the script
-from typing import Any, Callable, Iterator, Sequence, Optional
+from typing import Any, Optional
 from tqdm import tqdm  # Used to display progress bars for long-running operations
 
 Position = int
