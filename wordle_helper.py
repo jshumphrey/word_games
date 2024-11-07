@@ -4,6 +4,7 @@ good guesses, based on the feedback received about previous guesses."""
 
 from __future__ import annotations
 
+import functools
 import textwrap  # Used to pretty-print long blocks of text so that they appear nicely
 import typing  # Used for type-checking throughout the script
 from typing import Any, Callable, Iterator, Sequence, Optional
@@ -41,11 +42,6 @@ class Word:
     """A single valid Wordle word."""
 
     full_word: str
-    letters: set[Letter]
-
-    positions: dict[int, Letter]  # Position indices START AT 1
-    letter_counts: dict[Letter, int]  # Dict of {letter: count of occurrences}
-
     score: float
 
     def __init__(self, full_word: str) -> None:
@@ -53,11 +49,6 @@ class Word:
             raise ValueError("Words must have exactly five letters!")
 
         self.full_word = full_word
-        self.letters = set(full_word)
-
-        self.positions = dict(enumerate(full_word, start = 1))
-        self.letter_counts = {letter: self.full_word.count(letter) for letter in self.letters}
-
         self.score = self.calculate_score()
 
     def __str__(self) -> str:
@@ -86,15 +77,29 @@ class Word:
     def __hash__(self):
         return hash(self.__key())
 
+    @functools.cached_property
+    def letter_counts(self) -> dict[Letter, int]:
+        """A count of how many times each letter appears in the full Word."""
+        return {letter: self.full_word.count(letter) for letter in self.letters}
+
+    @functools.cached_property
+    def letters(self) -> set[Letter]:
+        """The set of the Word's unique letters."""
+        return set(self.full_word)
+
+    @functools.cached_property
+    def positions(self) -> dict[int, Letter]:
+        """The dict mapping integer positions to the letter at that position in the Word.
+        Note that positions start from 1, not 0."""
+        return dict(enumerate(self.full_word, start = 1))
+
     def calculate_score(self, frequency_dict: Optional[dict[Letter, float]] = None) -> float:
         """Calculates a word's "score" from the scores of its letters.
 
         This serves as a general proxy of how valuable its letters are in terms of gaining new information.
         """
-        if frequency_dict is None:
-            frequency_dict = GLOBAL_LETTER_FREQUENCIES
-
-        return round(sum(frequency_dict[letter] for letter in self.letters) * 100, 3)
+        dict_to_use = frequency_dict if frequency_dict is not None else GLOBAL_LETTER_FREQUENCIES
+        return round(sum(dict_to_use[letter] for letter in self.letters) * 100, 3)
 
     def calculate_guess_results(self, guessed_word: Word) -> str:
         """This takes in a guessed word and returns the Wordle results string. In other words, this pretends
@@ -148,17 +153,9 @@ class WordList:
     collections, and x in WordList is O(n)."""
 
     _words: list[Word]
-    letter_frequency: dict[Letter, float]
 
     def __init__(self, words: Sequence[Word | str]) -> None:
         self._words = [Word(w) if isinstance(w, str) else w for w in words]
-
-        # It might seem weird to go ahead and calculate the letter frequency
-        # for all new WordLists, but in practice, this gets used a _ton_,
-        # and it's honestly better to just calculate it at the beginning and
-        # cache it for later. Sooner or later, we're _going_ to need it,
-        # and calculating it is O(self._words), so should just do it once.
-        self.letter_frequency = self.calculate_letter_frequency()
 
     def __str__(self) -> str:
         return f"WordList containing {len(self)} words"
@@ -213,53 +210,8 @@ class WordList:
             f"but got {type(key)} instead!"
         )
 
-    @classmethod
-    def from_file(cls, filename: str) -> WordList:
-        """This sets up a WordList by reading Words from a text file."""
-        with open(filename, "r", encoding = "utf-8") as infile:
-            return cls([line.strip() for line in infile.readlines() if line])
-
-    def copy(self) -> WordList:
-        """This returns a deep copy of this WordList."""
-        return WordList(self._words[:])
-
-    def sort(
-        self,
-        sort_function: Callable[[Word], Any],
-        reverse: bool = False,
-    ) -> None:
-        """This sorts self._words according to the provided callable."""
-        self._words.sort(key = sort_function, reverse = reverse)
-
-    def frequency_sort(self) -> None:
-        """This is a common special case for sorting a WordList, where we want to sort the WordList by the
-        scores of its Words, where those scores are calculated based on this WordList's letter-frequency
-        distribution, and in descending order of those scores (i.e. highest scores first)."""
-        self.sort(sort_function = lambda w: w.calculate_score(self.letter_frequency), reverse = True)
-
-    def calculate_best_freqsort_word(self) -> Word:
-        """This encapsulates a common use-case for a WordList: getting the single Word with the highest score
-        according to this WordList's letter frequency."""
-        self.frequency_sort()
-        return self[0]
-
-    def apply_masks(self, masks: list["Mask"]) -> WordList:
-        """This returns a WordList of all of the Words in this WordList that meet ALL of the filtering
-        criteria in the provided Masks."""
-
-        # Trivial cases: 0 or 1 masks
-        if not masks:
-            return self
-        if len(masks) == 1:
-            return masks[0].filter_words(self)
-
-        # If we have multiple masks, add them all together before filtering ONCE
-        total_mask = masks[0]
-        for mask in masks[1:]:
-            total_mask += mask
-        return total_mask.filter_words(self)
-
-    def calculate_letter_frequency(self) -> dict[Letter, float]:
+    @functools.cached_property
+    def letter_frequency(self) -> dict[Letter, float]:
         """This runs a frequency analysis on all of the letters in the provided word list.
 
         It returns a dict that maps each letter to a percentage of that letter's representation across the
@@ -281,10 +233,49 @@ class WordList:
             for letter in word.full_word:
                 letters[letter] += 1
 
-        return {
-            letter: round(count / total_num_letters, 5)
-            for letter, count in letters.items()
-        }
+        return {letter: round(count / total_num_letters, 5) for letter, count in letters.items()}
+
+    @classmethod
+    def from_file(cls, filename: str) -> WordList:
+        """This sets up a WordList by reading Words from a text file."""
+        with open(filename, "r", encoding = "utf-8") as infile:
+            return cls([line.strip() for line in infile.readlines() if line])
+
+    def copy(self) -> WordList:
+        """This returns a deep copy of this WordList."""
+        return WordList(self._words[:])
+
+    def sort(self, sort_function: Callable[[Word], Any], reverse: bool = False):
+        """This sorts self._words according to the provided callable."""
+        self._words.sort(key = sort_function, reverse = reverse)
+
+    def frequency_sort(self) -> None:
+        """This is a common special case for sorting a WordList, where we want to sort the WordList by the
+        scores of its Words, where those scores are calculated based on this WordList's letter-frequency
+        distribution, and in descending order of those scores (i.e. highest scores first)."""
+        self.sort(sort_function = lambda w: w.calculate_score(self.letter_frequency), reverse = True)
+
+    def calculate_best_freqsort_word(self) -> Word:
+        """This encapsulates a common use-case for a WordList: getting the single Word with the highest score
+        according to this WordList's letter frequency."""
+        self.frequency_sort()
+        return self[0]
+
+    def apply_masks(self, masks: list[Mask]) -> WordList:
+        """This returns a WordList of all of the Words in this WordList that meet ALL of the filtering
+        criteria in the provided Masks."""
+
+        # Trivial cases: 0 or 1 masks
+        if not masks:
+            return self
+        if len(masks) == 1:
+            return masks[0].filter_words(self)
+
+        # If we have multiple masks, add them all together before filtering ONCE
+        total_mask = masks[0]
+        for mask in masks[1:]:
+            total_mask += mask
+        return total_mask.filter_words(self)
 
     def pprint(self, num_words: int = MAX_PRINT_RESULTS) -> None:
         """This pretty-prints a list of Words for display to the console.
