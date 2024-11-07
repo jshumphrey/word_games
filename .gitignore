@@ -1,3 +1,4 @@
-.vscode/*
+.venv
+.vscode
 words_alpha.txt
 __pycache__/*
