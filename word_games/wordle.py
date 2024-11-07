@@ -147,7 +147,7 @@ class WordList:
         return self._words != []
 
     def __eq__(self, other: WordList) -> bool:
-        return set(self) == set(other)
+        return self._words == other._words
 
     def __contains__(self, word: WordleWord) -> bool:
         return word in self._words
