@@ -38,8 +38,7 @@ VALID_FAUX_PLURAL_WORDS = {
 }
 
 class Word:
-    """A Word represents a single valid Wordle word.
-    Words also define a number of data structures to make comparison faster."""
+    """A single valid Wordle word."""
 
     full_word: str
     letters: set[Letter]
@@ -88,37 +87,37 @@ class Word:
         return hash(self.__key())
 
     def calculate_score(self, frequency_dict: Optional[dict[Letter, float]] = None) -> float:
-        """This calculates a word's "score" from the scores of its letters.
-        This serves as a general proxy of how valuable its letters are
-        in terms of gaining new information."""
+        """Calculates a word's "score" from the scores of its letters.
 
+        This serves as a general proxy of how valuable its letters are in terms of gaining new information.
+        """
         if frequency_dict is None:
             frequency_dict = GLOBAL_LETTER_FREQUENCIES
 
         return round(sum(frequency_dict[letter] for letter in self.letters) * 100, 3)
 
     def calculate_guess_results(self, guessed_word: Word) -> str:
-        """This takes in a guessed word and returns the Wordle results string.
-        In other words, this pretends that this Word is being used as the target
-        word in a Wordle game, and the guessed word is an attempt to solve the Wordle.
+        """This takes in a guessed word and returns the Wordle results string. In other words, this pretends
+        that this Word is being used as the target word in a Wordle game, and the guessed word is an attempt
+        to solve the Wordle.
 
-        With that in mind, this function returns the "guess results" string in the same
-        format as used in interactive_prompt or in Mask.from_wordle_results - a five-char
-        string composed of "g", "y", or "b", one for each letter in the guessed word.
+        With that in mind, this function returns the "guess results" string in the same format as used in
+        interactive_prompt or in Mask.from_wordle_results - a five-char string composed of "g", "y", or "b",
+        one foreach letter in the guessed word.
 
         One quirk about Wordle results involves words with multiple instances of the same letter.
 
-        If the target word is "teeth", and the user guesses "genie", the results will be "bgbby".
-        Note that the second "e" in "genie" gets a "y": even though it's in the wrong place,
-        there _is_ a second "e" in the word that needs to be guessed, so it doesn't get a "b".
+        If the target word is "teeth", and the user guesses "genie", the results will be "bgbby". Note that
+        the second "e" in "genie" gets a "y": even though it's in the wrong place, there _is_ a second "e" in
+        the word that needs to be guessed, so it doesn't get a "b".
 
-        On the other hand, if the guess was "epees", the results would be "ybgbb".
-        There is no _third_ "e" in the target word, so that third "e" gets a "b".
+        On the other hand, if the guess was "epees", the results would be "ybgbb". There is no _third_ "e" in
+        the target word, so that third "e" gets a "b".
 
-        To handle this, the `used_counts` dict keeps track of how many times we've processed
-        each letter in the guessed word, so that we can start assigning "b"s once we've
-        "used up" the occurrences of that letter in the target word."""
-
+        To handle this, the `used_counts` dict keeps track of how many times we've processed each letter in
+        the guessed word, so that we can start assigning "b"s once we've"used up" the occurrences of that
+        letter in the target word.
+        """
         used_counts = {}
         results = ""
 
@@ -142,11 +141,11 @@ class Word:
 
 
 class WordList:
-    """A WordList represents a list of Words, and provides a number of functions
-    to assist in working with groups of Words (rather than individually).
+    """A WordList represents a list of Words, and provides a number of functions to assist in working with
+    groups of Words (rather than individually).
 
-    Note that WordLists are named WordLISTS for a reason (as opposed to WordSets):
-    they are ordered collections, and x in WordList is O(n)."""
+    Note that WordLists are named WordLISTS for a reason (as opposed to WordSets): they are ordered
+    collections, and x in WordList is O(n)."""
 
     _words: list[Word]
     letter_frequency: dict[Letter, float]
@@ -188,8 +187,7 @@ class WordList:
         yield from self._words
 
     def __add__(self, other: WordList) -> WordList:
-        """Using dict.fromkeys preserves the insert order of the combined list,
-        while removing duplicates."""
+        """Using dict.fromkeys preserves the insert order of the combined list, while removing duplicates."""
         return WordList(list(dict.fromkeys(self._words + other._words)))
 
     def __radd__(self, other: WordList) -> WordList:
@@ -234,25 +232,20 @@ class WordList:
         self._words.sort(key = sort_function, reverse = reverse)
 
     def frequency_sort(self) -> None:
-        """This is a common special case for sorting a WordList, where we want to sort
-        the WordList by the scores of its Words, where those scores are calculated
-        based on this WordList's letter-frequency distribution, and in descending
-        order of those scores (i.e. highest scores first)."""
-
-        self.sort(
-            sort_function = lambda w: w.calculate_score(self.letter_frequency),
-            reverse = True
-        )
+        """This is a common special case for sorting a WordList, where we want to sort the WordList by the
+        scores of its Words, where those scores are calculated based on this WordList's letter-frequency
+        distribution, and in descending order of those scores (i.e. highest scores first)."""
+        self.sort(sort_function = lambda w: w.calculate_score(self.letter_frequency), reverse = True)
 
     def calculate_best_freqsort_word(self) -> Word:
-        """This encapsulates a common use-case for a WordList: getting the single Word
-        with the highest score according to this WordList's letter frequency."""
+        """This encapsulates a common use-case for a WordList: getting the single Word with the highest score
+        according to this WordList's letter frequency."""
         self.frequency_sort()
         return self[0]
 
     def apply_masks(self, masks: list["Mask"]) -> WordList:
-        """This returns a WordList of all of the Words in this WordList
-        that meet ALL of the filtering criteria in the provided Masks."""
+        """This returns a WordList of all of the Words in this WordList that meet ALL of the filtering
+        criteria in the provided Masks."""
 
         # Trivial cases: 0 or 1 masks
         if not masks:
@@ -268,11 +261,13 @@ class WordList:
 
     def calculate_letter_frequency(self) -> dict[Letter, float]:
         """This runs a frequency analysis on all of the letters in the provided word list.
-        It returns a dict that maps each letter to a percentage of that letter's
-        representation across the entire word list. All letters are included in the dict,
-        but their percentage value might be zero if the letter did not appear in the list.
-        The percentages are expressed as float values (i.e. 0.0535 = 5.35%)."""
 
+        It returns a dict that maps each letter to a percentage of that letter's representation across the
+        entire word list. All letters are included in the dict, but their percentage value might be zero if
+        the letter did not appear in the list.
+
+        The percentages are expressed as float values (i.e. 0.0535 = 5.35%).
+        """
         total_num_letters = len(self) * 5  # Shortcut since we know all words have 5 letters
 
         # Instantiating letters this way guarantees that we have an entry for every letter,
@@ -293,10 +288,10 @@ class WordList:
 
     def pprint(self, num_words: int = MAX_PRINT_RESULTS) -> None:
         """This pretty-prints a list of Words for display to the console.
-        The Words will be printed in the order they appear in `self._words`,
-        so if they need to be sorted before printing them, you'll need to
-        do that beforehand. Only a certain number of them are displayed."""
 
+        The Words will be printed in the order they  appear in `self._words`, so if they need to be sorted
+        before printing them, you'll need to do that beforehand. Only a certain number of them are displayed.
+        """
         print()
         print(f"Found {len(self)} total words; here are the top {num_words} of them.")
         print("  ".join(["Word ", "Score (These Words)", "Score (All Words)"]))
@@ -374,8 +369,7 @@ class Mask:
         ])
 
     def __add__(self, other: Mask) -> Mask:
-        """This combines two Masks together to yield a new Mask
-        that incorporates the information from both."""
+        """This combines two Masks together to yield a new Mask that incorporates the information from both."""
 
         base_error_message = "These two Masks are incompatible and cannot be combined together! "
 
@@ -426,11 +420,7 @@ class Mask:
         return self.__add__(other)
 
     @classmethod
-    def from_wordle_results(
-        cls,
-        guessed_word: str,
-        wordle_results: str | list[str],
-    ):
+    def from_wordle_results(cls, guessed_word: str, wordle_results: str | list[str]):
         """This allows you to create a Mask from the results of a Wordle guess.
         `input_word` should be the string of the word you guessed.
         `wordle_results` should be a five-char string of either "G", "Y", or "B":
@@ -438,7 +428,6 @@ class Mask:
         - "Y" for "yellow" (correct letter in incorrect place)
         - "B" for "black (incorrect letter; does not appear in the word)
         """
-
         guessed_word = guessed_word.lower()
         if isinstance(wordle_results, str):
             wordle_results = list(wordle_results)
@@ -464,10 +453,10 @@ class Mask:
             elif result == "y":
                 incorrect_positions[index].add(guess_letter)
 
-            # This one is more difficult. If the guessed word contains more than one occurrence
-            # of the letter, this "b" might be due to previous occurrences getting a "g" or "y",
-            # but the guess_word doesn't have this many occurrences of guess_letter.
-            # As a result, we need to check a couple of things before we can safely ban guess_letter.
+            # This one is more difficult. If the guessed word contains more than one occurrence of the letter,
+            # this "b" might be due to previous occurrences getting a "g" or "y", but the guess_word doesn't
+            # have this many occurrences of guess_letter. As a result, we need to check a couple of things
+            # before we can safely ban guess_letter.
             elif result == "b":
                 # Get a list of the indices that guess_letter appears in guess_word
                 indices = [i for i, l in enumerate(guessed_word) if l == guess_letter]
@@ -492,8 +481,8 @@ class Mask:
 
             else:
                 raise ValueError(
-                    "`wordle_results` must only contain "
-                    f"'G/g', 'Y/y', or 'B/b', but found {result}!"
+                    "`wordle_results` must only contain 'G/g', 'Y/y', or 'B/b', "
+                    f"but found {result}!"
                 )
 
         return cls(
@@ -504,22 +493,19 @@ class Mask:
         )
 
     def info_guess_version(self) -> Mask:
-        """An "informational guess version" of a Mask assumes that it's being used
-        not to try to solve the Wordle, but to get as much information as possible,
-        for use in an upcoming guess.
+        """An "informational guess version" of a Mask assumes that it's being used not to try to solve the
+        Wordle, but to get as much information as possible, for use in an upcoming guess.
 
-        This means that it will reverse its attitude towards the correct positions
-        (the greens): those become actively unwanted, since we already have those
-        positions understood, and instead of repeating those letters in those positions
-        in this guess, we might be able to use those positions to learn about a different
-        letter instead.
+        This means that it will reverse its attitude towards the correct positions (the greens): those become
+        actively unwanted, since we already have those positions understood, and instead of repeating those
+        letters in those positions in this guess, we might be able to use those positions to learn about a
+        different letter instead.
 
-        However, we also want to make sure we don't try any of our incorrect positions
-        in those positions, since we _know_ we won't find them there. So we extend the
-        incorrect positions by adding an incorrect position entry at each of the known
-        positions, with the incorrect letters being the set union of all our current
-        incorrect-position letters."""
-
+        However, we also want to make sure we don't try any of our incorrect positions in those positions,
+        since we _know_ we won't find them there. So we extend the incorrect positions by adding an incorrect
+        position entry at each of the known positions, with the incorrect letters being the set union of all
+        our current incorrect-position letters.
+        """
         return Mask(
             correct_positions = {},
             incorrect_positions = self.incorrect_positions | {
@@ -530,8 +516,7 @@ class Mask:
         )
 
     def is_word_accepted(self, word: Word | str) -> bool:
-        """This examines an input word and determines whether
-        the word meets this Mask's filtering criteria."""
+        """This examines an input word and determines whether the word meets this Mask's filtering criteria."""
 
         word = word if isinstance(word, Word) else Word(word)
 
@@ -585,23 +570,20 @@ def solve_wordle(
     starting_word: Optional[Word] = None,
     print_output: bool = False,
 ) -> int:
-    """This attempts to solve the Wordle whose target is target_word, based on
-    the provided list of possible words. It returns the number of guesses it took
-    to solve the Wordle.
+    """This attempts to solve the Wordle whose target is target_word, based on the provided list of possible
+    words. It returns the number of guesses it took to solve the Wordle.
 
-    The goal for the solver is to maximise the amount of 3-guess solves, since
-    1-guess and 2-guess solves are mostly a result of blind luck. As a result,
-    the first two guesses are "informational" guesses (see Mask.info_guess_version),
-    and guesses from the third guess onward are "solve" guesses.
+    The goal for the solver is to maximise the amount of 3-guess solves, since 1-guess and 2-guess solves are
+    mostly a result of blind luck. As a result, the first two guesses are "informational" guesses (see
+    Mask.info_guess_version), and guesses from the third guess onward are "solve" guesses.
 
-    If desired, an alternative initial guess can be provided with the
-    `starting_word` parameter."""
-
+    If desired, an alternative initial guess can be provided with the `starting_word` parameter.
+    """
     target_word = Word(target_word) if isinstance(target_word, str) else target_word
     num_guesses = 0
     masks = []
 
-    possible_words = all_words.copy() # Need to be careful not to modify all_words
+    possible_words = all_words.copy()  # Need to be careful not to modify all_words
     guess_word = starting_word if starting_word else possible_words.calculate_best_freqsort_word()
 
     while True:
@@ -640,10 +622,9 @@ def solve_wordle(
 
 
 def solve_all_wordles(words: WordList) -> None:
-    """This attempts to solve all possible Wordles, based on the script's
-    suggested words. At the end, statistics are printed about the numbers of
-    guesses it took to solve each word."""
-
+    """This attempts to solve all possible Wordles, based on the script's suggested words. At the end,
+    statistics are printed about the numbers of guesses it took to solve each word.
+    """
     results: dict[Word, int] = {}  # Stores the number of guesses it took to solve the Word
 
     # Precalculate the starting word to avoid having to redo it for each target word.
