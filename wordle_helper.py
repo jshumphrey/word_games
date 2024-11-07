@@ -43,14 +43,12 @@ class Word:
     """A single valid Wordle word."""
 
     full_word: str
-    score: float
 
     def __init__(self, full_word: str) -> None:
         if len(full_word) != 5:
             raise ValueError("Words must have exactly five letters!")
 
         self.full_word = full_word
-        self.score = self.calculate_score()
 
     def __str__(self) -> str:
         return self.full_word
@@ -59,7 +57,7 @@ class Word:
         return (
             f"<wordle_helper.Word at {hex(id(self))}: "
             f"full_word: {self.full_word}"
-            f", score: {self.score}"
+            f", global_score: {self.global_score}"
             f">"
         )
 
@@ -77,6 +75,11 @@ class Word:
 
     def __hash__(self):
         return hash(self.__key())
+
+    @functools.cached_property
+    def global_score(self) -> float:
+        """The Word's calculate_score value when calculated against GLOBAL_LETTER_FREQUENCIES."""
+        return self.calculate_score(GLOBAL_LETTER_FREQUENCIES)
 
     @functools.cached_property
     def letter_counts(self) -> dict[Letter, int]:
@@ -292,7 +295,7 @@ class WordList:
             print("  ".join([
                 word.full_word,
                 str(word.calculate_score(self.letter_frequency)).ljust(19, " "),
-                str(word.score),
+                str(word.global_score),
             ]))
         print()
 
