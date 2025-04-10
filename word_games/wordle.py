@@ -10,7 +10,7 @@ import functools
 import pathlib
 import textwrap  # Used to pretty-print long blocks of text so that they appear nicely
 import typing  # Used for type-checking throughout the script
-from typing import Any, Optional
+from typing import Any, Optional, Self
 from tqdm import tqdm  # Used to display progress bars for long-running operations
 
 import word_games
@@ -214,7 +214,7 @@ class WordList:
         return {letter: round(count / total_num_letters, 5) for letter, count in letters.items()}
 
     @classmethod
-    def from_file(cls, filepath: str | pathlib.Path) -> WordList:
+    def from_file(cls: type[Self], filepath: str | pathlib.Path) -> Self:
         """Set up a WordList by reading Words from a text file."""
         with open(filepath, "r", encoding = "utf-8") as infile:
             return cls([line.strip() for line in infile.readlines() if line])
@@ -388,7 +388,7 @@ class Mask:
         return self.__add__(other)
 
     @classmethod
-    def from_wordle_results(cls, guessed_word: str, wordle_results: str | list[str]):
+    def from_wordle_results(cls: type[Self], guessed_word: str, wordle_results: str | list[str]) -> Self:
         """Create a Mask from the results of a Wordle guess.
         `input_word` should be the string of the word you guessed.
         `wordle_results` should be a five-char string of either "G", "Y", or "B":
