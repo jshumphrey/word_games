@@ -127,10 +127,10 @@ class WordList:
     Note that WordLists are named WordLISTS for a reason (as opposed to WordSets): they are ordered
     collections, and x in WordList is O(n)."""
 
-    _words: list[WordleWord]
+    words: list[WordleWord]
 
     def __init__(self, words: Iterable[WordleWord | str]) -> None:
-        self._words = [WordleWord(w) if isinstance(w, str) else w for w in words]
+        self.words = [WordleWord(w) if isinstance(w, str) else w for w in words]
 
     def __str__(self) -> str:
         return f"WordList containing {len(self)} words"
@@ -138,32 +138,32 @@ class WordList:
     def __repr__(self) -> str:
         return (
             f"<wordle_helper.WordList at {hex(id(self))}: "
-            f"_words: {[str(w) for w in self._words]}"
+            f"_words: {[str(w) for w in self.words]}"
             f", letter_frequency: {self.letter_frequency}"
             f">"
         )
 
     def __bool__(self) -> bool:
-        return self._words != []
+        return self.words != []
 
     def __eq__(self, other: object) -> bool:
         return (
-            (isinstance(other, WordList) and self._words == other._words)
-            or (isinstance(other, Sequence) and self._words == other)
+            (isinstance(other, WordList) and self.words == other.words)
+            or (isinstance(other, Sequence) and self.words == other)
         )
 
     def __contains__(self, word: WordleWord) -> bool:
-        return word in self._words
+        return word in self.words
 
     def __len__(self) -> int:
-        return len(self._words)
+        return len(self.words)
 
     def __iter__(self) -> Iterator[WordleWord]:
-        yield from self._words
+        yield from self.words
 
     def __add__(self, other: WordList) -> WordList:
         # Using dict.fromkeys preserves the insert order of the combined list, while removing duplicates.
-        return WordList(list(dict.fromkeys(self._words + other._words)))
+        return WordList(list(dict.fromkeys(self.words + other.words)))
 
     def __radd__(self, other: WordList) -> WordList:
         return other.__add__(self)
@@ -178,10 +178,10 @@ class WordList:
 
     def __getitem__(self, key: int | slice):
         if isinstance(key, slice):
-            return WordList(self._words[key])
+            return WordList(self.words[key])
 
         if isinstance(key, int):
-            return self._words[key]
+            return self.words[key]
 
         raise TypeError(
             "WordList.__getitem__ expects keys that are integers or slices, "
@@ -204,7 +204,7 @@ class WordList:
         # including letters that don't appear in any of this WordList's words
         letters = {chr(letter_int): 0 for letter_int in range(ord("a"), ord("z") + 1)}
 
-        if not self._words:
+        if not self.words:
             return {letter: 0.0 for letter in letters.keys()}
 
         for word in self:
@@ -221,11 +221,11 @@ class WordList:
 
     def copy(self) -> WordList:
         """Returns a deep copy of this WordList."""
-        return WordList(self._words[:])
+        return WordList(self.words[:])
 
     def sort(self, sort_function: Callable[[WordleWord], Any], reverse: bool = False):
         """Sort self._words according to the provided callable."""
-        self._words.sort(key = sort_function, reverse = reverse)
+        self.words.sort(key = sort_function, reverse = reverse)
 
     def frequency_sort(self) -> None:
         """This is a common special case for sorting a WordList, where we want to sort the WordList by the
