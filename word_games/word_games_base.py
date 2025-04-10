@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import abc
+from collections.abc import Generator
 import dataclasses
 import functools
 import pathlib
@@ -17,6 +18,13 @@ ALL_WORDS_FILEPATH = DATA_FILES_DIRPATH / "words_alpha.txt"
 FIVE_LETTER_WORDS_FILEPATH = DATA_FILES_DIRPATH / "five_letter_words.txt"
 
 Letter = str
+
+
+def read_words_from_file(filepath: str | pathlib.Path) -> Generator[str, None, None]:
+    """Open the provided file of words and yield each line from it."""
+    with open(filepath, "r", encoding = "utf-8") as infile:
+        yield from (line.strip() for line in infile.readlines() if line)
+
 
 @dataclasses.dataclass(eq = True, frozen = True, repr = True)
 class Word(abc.ABC):

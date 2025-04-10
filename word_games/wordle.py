@@ -216,8 +216,7 @@ class WordList:
     @classmethod
     def from_file(cls: type[Self], filepath: str | pathlib.Path) -> Self:
         """Set up a WordList by reading Words from a text file."""
-        with open(filepath, "r", encoding = "utf-8") as infile:
-            return cls([line.strip() for line in infile.readlines() if line])
+        return cls(word_games.read_words_from_file(filepath))
 
     def copy(self) -> WordList:
         """Returns a deep copy of this WordList."""
