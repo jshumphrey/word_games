@@ -5,7 +5,7 @@ good guesses, based on the feedback received about previous guesses."""
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
 import functools
 import pathlib
 import textwrap  # Used to pretty-print long blocks of text so that they appear nicely
@@ -55,22 +55,22 @@ class WordleWord(word_games.Word):
 
     @functools.cached_property
     def global_score(self) -> float:
-        """The Word's calculate_score value when calculated against GLOBAL_LETTER_FREQUENCIES."""
+        """The WordleWord's calculate_score value when calculated against GLOBAL_LETTER_FREQUENCIES."""
         return self.calculate_score(GLOBAL_LETTER_FREQUENCIES)
 
     @functools.cached_property
     def letter_counts(self) -> dict[Letter, int]:
-        """A count of how many times each letter appears in the full Word."""
+        """A count of how many times each letter appears in the full WordleWord."""
         return {letter: self.full_word.count(letter) for letter in self.letters}
 
     @functools.cached_property
     def positions(self) -> dict[int, Letter]:
-        """The dict mapping integer positions to the letter at that position in the Word.
+        """The dict mapping integer positions to the letter at that position in the WordleWord.
         Note that positions start from 1, not 0."""
         return dict(enumerate(self.full_word, start = 1))
 
     def calculate_score(self, frequency_dict: Optional[dict[Letter, float]] = None) -> float:
-        """Calculates a word's "score" from the scores of its letters.
+        """Calculate the WordleWord's "score" from the scores of its letters.
 
         This serves as a general proxy of how valuable its letters are in terms of gaining new information.
         """
@@ -122,15 +122,14 @@ class WordleWord(word_games.Word):
 
 
 class WordList:
-    """A WordList represents a list of Words, and provides a number of functions to assist in working with
-    groups of Words (rather than individually).
+    """A list of WordleWord objects.
 
     Note that WordLists are named WordLISTS for a reason (as opposed to WordSets): they are ordered
     collections, and x in WordList is O(n)."""
 
     _words: list[WordleWord]
 
-    def __init__(self, words: Sequence[WordleWord | str]) -> None:
+    def __init__(self, words: Iterable[WordleWord | str]) -> None:
         self._words = [WordleWord(w) if isinstance(w, str) else w for w in words]
 
     def __str__(self) -> str:
@@ -163,7 +162,7 @@ class WordList:
         yield from self._words
 
     def __add__(self, other: WordList) -> WordList:
-        """Using dict.fromkeys preserves the insert order of the combined list, while removing duplicates."""
+        # Using dict.fromkeys preserves the insert order of the combined list, while removing duplicates.
         return WordList(list(dict.fromkeys(self._words + other._words)))
 
     def __radd__(self, other: WordList) -> WordList:
@@ -177,7 +176,7 @@ class WordList:
     def __getitem__(self, key: int) -> WordleWord:
         pass
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int | slice):
         if isinstance(key, slice):
             return WordList(self._words[key])
 
@@ -191,9 +190,9 @@ class WordList:
 
     @functools.cached_property
     def letter_frequency(self) -> dict[Letter, float]:
-        """This runs a frequency analysis on all of the letters in the provided word list.
+        """Run a frequency analysis on all of the letters in the provided word list.
 
-        It returns a dict that maps each letter to a percentage of that letter's representation across the
+        Return a dict that maps each letter to a percentage of that letter's representation across the
         entire word list. All letters are included in the dict, but their percentage value might be zero if
         the letter did not appear in the list.
 
@@ -216,16 +215,16 @@ class WordList:
 
     @classmethod
     def from_file(cls, filepath: str | pathlib.Path) -> WordList:
-        """This sets up a WordList by reading Words from a text file."""
+        """Set up a WordList by reading Words from a text file."""
         with open(filepath, "r", encoding = "utf-8") as infile:
             return cls([line.strip() for line in infile.readlines() if line])
 
     def copy(self) -> WordList:
-        """This returns a deep copy of this WordList."""
+        """Returns a deep copy of this WordList."""
         return WordList(self._words[:])
 
     def sort(self, sort_function: Callable[[WordleWord], Any], reverse: bool = False):
-        """This sorts self._words according to the provided callable."""
+        """Sort self._words according to the provided callable."""
         self._words.sort(key = sort_function, reverse = reverse)
 
     def frequency_sort(self) -> None:
@@ -235,14 +234,12 @@ class WordList:
         self.sort(sort_function = lambda w: w.calculate_score(self.letter_frequency), reverse = True)
 
     def calculate_best_freqsort_word(self) -> WordleWord:
-        """This encapsulates a common use-case for a WordList: getting the single Word with the highest score
-        according to this WordList's letter frequency."""
+        """Return the single Word with the highest score according to this WordList's letter frequency."""
         self.frequency_sort()
         return self[0]
 
     def apply_masks(self, masks: list[Mask]) -> WordList:
-        """This returns a WordList of all of the Words in this WordList that meet ALL of the filtering
-        criteria in the provided Masks."""
+        """Return the subset of the WordList that meet ALL of the filtering criteria in the provided Masks."""
 
         # Trivial cases: 0 or 1 masks
         if not masks:
@@ -257,7 +254,7 @@ class WordList:
         return total_mask.filter_words(self)
 
     def pprint(self, num_words: int = MAX_PRINT_RESULTS) -> None:
-        """This pretty-prints a list of Words for display to the console.
+        """Pretty-print a list of Words for display to the console.
 
         The Words will be printed in the order they  appear in `self._words`, so if they need to be sorted
         before printing them, you'll need to do that beforehand. Only a certain number of them are displayed.
@@ -276,7 +273,7 @@ class WordList:
 
 
 class Mask:
-    """A Mask represents a set of filtering criteria that gets applied to a WordList."""
+    """A set of filtering criteria that gets applied to a WordList."""
 
     correct_positions: dict[Position, Letter]  # Greens; Letters that must appear in a certain position
     incorrect_positions: dict[Position, set[Letter]]  # Yellows; Letters that must NOT appear in a certain position
@@ -331,15 +328,16 @@ class Mask:
             f">"
         )
 
-    def __eq__(self, other: Mask) -> bool:
-        return all([
-            self.correct_positions == other.correct_positions,
-            self.incorrect_positions == other.incorrect_positions,
-            self.incorrect_globals == other.incorrect_globals,
-        ])
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, Mask)
+            and self.correct_positions == other.correct_positions
+            and self.incorrect_positions == other.incorrect_positions
+            and self.incorrect_globals == other.incorrect_globals
+        )
 
     def __add__(self, other: Mask) -> Mask:
-        """This combines two Masks together to yield a new Mask that incorporates the information from both."""
+        """Combine two Masks together to yield a new Mask that incorporates the information from both."""
 
         base_error_message = "These two Masks are incompatible and cannot be combined together! "
 
@@ -391,7 +389,7 @@ class Mask:
 
     @classmethod
     def from_wordle_results(cls, guessed_word: str, wordle_results: str | list[str]):
-        """This allows you to create a Mask from the results of a Wordle guess.
+        """Create a Mask from the results of a Wordle guess.
         `input_word` should be the string of the word you guessed.
         `wordle_results` should be a five-char string of either "G", "Y", or "B":
         - "G" for "green" (correct letter in correct place)
@@ -450,10 +448,7 @@ class Mask:
                         pass
 
             else:
-                raise ValueError(
-                    "`wordle_results` must only contain 'G/g', 'Y/y', or 'B/b', "
-                    f"but found {result}!"
-                )
+                raise ValueError(f"`wordle_results` must only contain 'G/g', 'Y/y', or 'B/b', but found {result}!")
 
         return cls(
             correct_positions = correct_positions,
@@ -486,7 +481,7 @@ class Mask:
         )
 
     def is_word_accepted(self, word: WordleWord | str) -> bool:
-        """This examines an input word and determines whether the word meets this Mask's filtering criteria."""
+        """Examine an input word and determine whether the word meets this Mask's filtering criteria."""
 
         word = word if isinstance(word, WordleWord) else WordleWord(word)
 
@@ -520,8 +515,8 @@ class Mask:
         return True
 
     def filter_words(self, words: WordList) -> WordList:
-        """This applies this Mask to an entire sequence of input Words."""
-        return WordList([word for word in words if self.is_word_accepted(word)])
+        """Return the subset of the provided WordList containing the Words that pass the Mask's filters."""
+        return WordList(filter(self.is_word_accepted, words))
 
 
 def print_help() -> None:
