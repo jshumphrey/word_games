@@ -169,12 +169,10 @@ class WordList:
         return other.__add__(self)
 
     @typing.overload
-    def __getitem__(self, key: slice) -> WordList:
-        pass
+    def __getitem__(self, key: slice) -> WordList: ...
 
     @typing.overload
-    def __getitem__(self, key: int) -> WordleWord:
-        pass
+    def __getitem__(self, key: int) -> WordleWord: ...
 
     def __getitem__(self, key: int | slice):
         if isinstance(key, slice):
