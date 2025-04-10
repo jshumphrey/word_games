@@ -477,7 +477,7 @@ class Mask:
             incorrect_globals = self.incorrect_globals | set(self.correct_positions.values()),
         )
 
-    def is_word_accepted(self, word: WordleWord | str) -> bool:
+    def is_word_accepted(self, word: WordleWord | str) -> bool:  # pylint: disable = too-many-return-statements
         """Examine an input word and determine whether the word meets this Mask's filtering criteria."""
 
         word = word if isinstance(word, WordleWord) else WordleWord(word)
