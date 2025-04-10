@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """This is a simple script to help output valid Wordle words that might make
 good guesses, based on the feedback received about previous guesses."""
+# pyright: reportMissingModuleSource=false
 
 from __future__ import annotations
 
