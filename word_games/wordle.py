@@ -147,8 +147,11 @@ class WordList:
     def __bool__(self) -> bool:
         return self._words != []
 
-    def __eq__(self, other: WordList) -> bool:
-        return self._words == other._words
+    def __eq__(self, other: object) -> bool:
+        return (
+            (isinstance(other, WordList) and self._words == other._words)
+            or (isinstance(other, Sequence) and self._words == other)
+        )
 
     def __contains__(self, word: WordleWord) -> bool:
         return word in self._words
