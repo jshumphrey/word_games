@@ -5,12 +5,10 @@ good guesses, based on the feedback received about previous guesses."""
 
 from __future__ import annotations
 
-from collections.abc import Callable, Iterable, Iterator, Sequence
+from collections.abc import Callable
 import functools
-import pathlib
 import textwrap  # Used to pretty-print long blocks of text so that they appear nicely
-import typing  # Used for type-checking throughout the script
-from typing import Any, Optional, Self
+from typing import Optional, Self
 from tqdm import tqdm  # Used to display progress bars for long-running operations
 
 import word_games
@@ -121,70 +119,8 @@ class WordleWord(word_games.Word):
         return results
 
 
-class WordList:
-    """A list of WordleWord objects.
-
-    Note that WordLists are named WordLISTS for a reason (as opposed to WordSets): they are ordered
-    collections, and x in WordList is O(n)."""
-
-    words: list[WordleWord]
-
-    def __init__(self, words: Iterable[WordleWord | str]) -> None:
-        self.words = [WordleWord(w) if isinstance(w, str) else w for w in words]
-
-    def __str__(self) -> str:
-        return f"WordList containing {len(self)} words"
-
-    def __repr__(self) -> str:
-        return (
-            f"<wordle_helper.WordList at {hex(id(self))}: "
-            f"_words: {[str(w) for w in self.words]}"
-            f", letter_frequency: {self.letter_frequency}"
-            f">"
-        )
-
-    def __bool__(self) -> bool:
-        return self.words != []
-
-    def __eq__(self, other: object) -> bool:
-        return (
-            (isinstance(other, WordList) and self.words == other.words)
-            or (isinstance(other, Sequence) and self.words == other)
-        )
-
-    def __contains__(self, word: WordleWord) -> bool:
-        return word in self.words
-
-    def __len__(self) -> int:
-        return len(self.words)
-
-    def __iter__(self) -> Iterator[WordleWord]:
-        yield from self.words
-
-    def __add__(self, other: WordList) -> WordList:
-        # Using dict.fromkeys preserves the insert order of the combined list, while removing duplicates.
-        return WordList(list(dict.fromkeys(self.words + other.words)))
-
-    def __radd__(self, other: WordList) -> WordList:
-        return other.__add__(self)
-
-    @typing.overload
-    def __getitem__(self, key: slice) -> WordList: ...
-
-    @typing.overload
-    def __getitem__(self, key: int) -> WordleWord: ...
-
-    def __getitem__(self, key: int | slice):
-        if isinstance(key, slice):
-            return WordList(self.words[key])
-
-        if isinstance(key, int):
-            return self.words[key]
-
-        raise TypeError(
-            "WordList.__getitem__ expects keys that are integers or slices, "
-            f"but got {type(key)} instead!"
-        )
+class WordleWordList(word_games.WordList[WordleWord]):
+    """A WordList specifically tailored to WordleWords."""
 
     @functools.cached_property
     def letter_frequency(self) -> dict[Letter, float]:
@@ -211,18 +147,10 @@ class WordList:
 
         return {letter: round(count / total_num_letters, 5) for letter, count in letters.items()}
 
-    @classmethod
-    def from_file(cls: type[Self], filepath: str | pathlib.Path) -> Self:
-        """Set up a WordList by reading Words from a text file."""
-        return cls(word_games.read_words_from_file(filepath))
-
-    def copy(self) -> WordList:
-        """Returns a deep copy of this WordList."""
-        return WordList(self.words[:])
-
-    def sort(self, sort_function: Callable[[WordleWord], Any], reverse: bool = False):
-        """Sort self._words according to the provided callable."""
-        self.words.sort(key = sort_function, reverse = reverse)
+    @property
+    def word_factory(self) -> Callable[[str], WordleWord]:
+        """Implement word_factory for WordleWordList."""
+        return WordleWord
 
     def frequency_sort(self) -> None:
         """This is a common special case for sorting a WordList, where we want to sort the WordList by the
@@ -235,7 +163,7 @@ class WordList:
         self.frequency_sort()
         return self[0]
 
-    def apply_masks(self, masks: list[Mask]) -> WordList:
+    def apply_masks(self, masks: list[Mask]) -> Self:
         """Return the subset of the WordList that meet ALL of the filtering criteria in the provided Masks."""
 
         # Trivial cases: 0 or 1 masks
@@ -511,9 +439,9 @@ class Mask:
         # If none of the rejection criteria apply, accept the word by returning True.
         return True
 
-    def filter_words(self, words: WordList) -> WordList:
+    def filter_words(self, words: word_games.AnyWordList) -> word_games.AnyWordList:
         """Return the subset of the provided WordList containing the Words that pass the Mask's filters."""
-        return WordList(filter(self.is_word_accepted, words))
+        return type(words)(filter(self.is_word_accepted, words))
 
 
 def print_help() -> None:
@@ -528,7 +456,7 @@ def print_help() -> None:
 
 def solve_wordle(
     target_word: WordleWord | str,
-    all_words: WordList,
+    all_words: WordleWordList,
     starting_word: Optional[WordleWord] = None,
     print_output: bool = False,
 ) -> int:
@@ -583,7 +511,7 @@ def solve_wordle(
             guess_word = possible_words.calculate_best_freqsort_word()
 
 
-def solve_all_wordles(words: WordList) -> None:
+def solve_all_wordles(words: WordleWordList) -> None:
     """This attempts to solve all possible Wordles, based on the script's suggested words. At the end,
     statistics are printed about the numbers of guesses it took to solve each word.
     """
@@ -631,7 +559,7 @@ def solve_all_wordles(words: WordList) -> None:
 def interactive_prompt() -> None:
     """This provides an interactive prompt that helps to make use of this script."""
 
-    words: WordList = WordList.from_file(word_games.word_games_base.FIVE_LETTER_WORDS_FILEPATH)
+    words: WordleWordList = WordleWordList.from_file(word_games.FIVE_LETTER_WORDS_FILEPATH)
     masks: list[Mask] = []
 
     while True:
@@ -650,7 +578,7 @@ def interactive_prompt() -> None:
 
             # Reload the word list from the file, in case it's been changed during runtime.
             case ["reload"]:
-                words = WordList.from_file(word_games.word_games_base.FIVE_LETTER_WORDS_FILEPATH)
+                words = WordleWordList.from_file(word_games.FIVE_LETTER_WORDS_FILEPATH)
                 print("Word list reloaded from file.")
 
             # Allow the user to view and/or clear the list of current Masks.

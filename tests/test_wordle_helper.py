@@ -46,7 +46,7 @@ class TestWordList(unittest.TestCase):
     def test_from_file(self):
         """Make sure that WordList.from_file can successfully read in a file of test words."""
         try:
-            test_wl = wordle.WordList.from_file(TESTS_DIRPATH / "test_words_file.txt")
+            test_wl = wordle.WordleWordList.from_file(TESTS_DIRPATH / "test_words_file.txt")
             self.assertEqual(list(w.full_word for w in test_wl), ["abcde", "fghij", "klmno"])
 
         except Exception as ex:
@@ -54,7 +54,7 @@ class TestWordList(unittest.TestCase):
 
     def test_sort(self):
         """Test that WordList.sort correctly sorts the WordList's words."""
-        test_wl = wordle.WordList.from_file(TESTS_DIRPATH / "test_words_file.txt")
+        test_wl = wordle.WordleWordList.from_file(TESTS_DIRPATH / "test_words_file.txt")
         self.assertEqual(list(w.full_word for w in test_wl), ["abcde", "fghij", "klmno"])
 
         # When sorting by score, the order of the test words is "abcde" > "klmno" > "fghij"
