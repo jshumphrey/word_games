@@ -31,12 +31,15 @@ def read_words_from_file(filepath: str | pathlib.Path) -> Generator[str, None, N
 
 @dataclasses.dataclass(eq = True, frozen = True, repr = True)
 class Word(abc.ABC):
-    """An abstract base class representing a single valid English word."""
+    """A single valid English word."""
 
     full_word: str
 
     def __contains__(self, letter: Letter) -> bool:
         return letter in self.letters
+
+    def __len__(self) -> int:
+        return len(self.full_word)
 
     def __str__(self) -> str:
         return self.full_word
