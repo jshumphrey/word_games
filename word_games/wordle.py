@@ -171,12 +171,8 @@ class WordleWordList(word_games.WordList[WordleWord]):
             return self
         if len(masks) == 1:
             return masks[0].filter_words(self)
-
         # If we have multiple masks, add them all together before filtering ONCE
-        total_mask = masks[0]
-        for mask in masks[1:]:
-            total_mask += mask
-        return total_mask.filter_words(self)
+        return functools.reduce(lambda x, y: x + y, masks).filter_words(self)
 
     def pprint(self, num_words: int = MAX_PRINT_RESULTS) -> None:
         """Pretty-print a list of Words for display to the console.
