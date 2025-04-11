@@ -125,6 +125,10 @@ class WordList[W: Word](abc.ABC):
         """Returns a deep copy of this WordList."""
         return type(self)(self.words[:])
 
+    def filter(self, lambda_function: Callable[[W], bool]) -> Self:
+        """Return a new WordList of the Words that return True when passed to the provided function."""
+        return type(self)(filter(lambda_function, self.words))
+
     def sort(self, sort_function: Callable[[W], Any], reverse: bool = False):
         """Sort self._words according to the provided callable."""
         self.words.sort(key = sort_function, reverse = reverse)
