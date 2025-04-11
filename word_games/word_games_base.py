@@ -61,9 +61,11 @@ class WordList[W: Word](abc.ABC):
     def __init__(self, words: Iterable[W | str]) -> None:
         self.words = [self.word_factory(w) if isinstance(w, str) else w for w in words]
 
-    def __add__(self, other: WordList) -> Self:
-        # Using dict.fromkeys preserves the insert order of the combined list, while removing duplicates.
-        return type(self)(list(dict.fromkeys(self.words + other.words)))
+    def __add__(self, other: WordList | W) -> Self:
+        return (
+            type(self)(self.words + [other]) if isinstance(other, Word)
+            else type(self)(list(dict.fromkeys(self.words + other.words)))  # dict.fromkeys preserves order
+        )
 
     def __radd__(self, other: AnyWordList) -> AnyWordList:
         return other.__add__(self)
