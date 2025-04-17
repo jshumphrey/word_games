@@ -140,6 +140,7 @@ class WordList[W: Word](abc.ABC):
         """Return a new WordList of the Words that return True when passed to the provided function."""
         return type(self)(filter(lambda_function, self.words))
 
-    def sort(self, sort_function: Callable[[W], Any], reverse: bool = False):
+    def sort(self, sort_function: Callable[[W], Any], reverse: bool = False) -> Self:
         """Sort self._words according to the provided callable."""
         self.words.sort(key = sort_function, reverse = reverse)
+        return self
