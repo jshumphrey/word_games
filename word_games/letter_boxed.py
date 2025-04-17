@@ -55,7 +55,7 @@ class LetterBoxedWordList(word_games.WordList[LetterBoxedWord]):
 
     @property
     def word_factory(self) -> Callable[[str], LetterBoxedWord]:
-        """Implement word_factory for LetterBoxedWord."""
+        """Implement word_factory for LetterBoxedWordList."""
         return LetterBoxedWord
 
 
