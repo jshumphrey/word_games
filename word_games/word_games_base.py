@@ -29,6 +29,7 @@ def read_words_from_file(filepath: str | pathlib.Path) -> Generator[str, None, N
         yield from (line.strip() for line in infile.readlines() if line)
 
 
+@functools.total_ordering
 @dataclasses.dataclass(eq = True, frozen = True, repr = True)
 class Word(abc.ABC):
     """A single valid English word."""
@@ -38,8 +39,16 @@ class Word(abc.ABC):
     def __contains__(self, letter: Letter) -> bool:
         return letter in self.letters
 
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, type(self)) and other.full_word == self.full_word
+
     def __len__(self) -> int:
         return len(self.full_word)
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, type(self)):
+            raise TypeError
+        return self.full_word < other.full_word
 
     def __str__(self) -> str:
         return self.full_word
