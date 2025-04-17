@@ -67,7 +67,7 @@ class WordList[W: Word](abc.ABC):
 
     words: list[W]
 
-    def __init__(self, words: Iterable[W | str]) -> None:
+    def __init__(self, words: Iterable[W | str]):
         self.words = [self.word_factory(w) if isinstance(w, str) else w for w in words]
 
     def __add__(self, other: WordList | W) -> Self:
