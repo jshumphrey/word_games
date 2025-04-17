@@ -34,7 +34,7 @@ class LetterBoxedWord(word_games.Word):
 
     def can_follow(self, chain: WordChain) -> bool:
         """Whether or not the LetterBoxedWord can be appended to the provided WordChain."""
-        return self.first_letter == chain.last_letter
+        return chain.words == [] or self.first_letter == chain.last_letter
 
 
 class LetterBoxedWordList(word_games.WordList[LetterBoxedWord]):
