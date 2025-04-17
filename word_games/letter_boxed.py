@@ -121,6 +121,49 @@ class LetterBox:
         return True
 
 
+
+class WordChain(LetterBoxedWordList):
+    """A LetterBoxedWordList whose words form a Letter Boxed solution, where each successive word in
+    the WordChain must begin with the same letter as the last letter of the preceding word."""
+
+    letter_box: LetterBox
+
+    def __init__(self, words, letter_box: LetterBox):
+        super().__init__(words)
+        self.letter_box = letter_box
+
+    def __str__(self) -> str:
+        return " - ".join(map(str, self))
+
+    @functools.cached_property
+    def first_letter(self) -> Letter:
+        """The first letter of the overall WordChain."""
+        return self.words[0].first_letter
+
+    @functools.cached_property
+    def last_letter(self) -> Letter:
+        """The last letter of the overall WordChain."""
+        return self.words[-1].last_letter
+
+    @functools.cached_property
+    def remaining_letters(self) -> frozenset[Letter]:
+        """The set of letters that are still needed to solve the WordChain's LetterBox."""
+        return self.letter_box.letters - self.used_letters
+
+    @functools.cached_property
+    def used_letters(self) -> set[Letter]:
+        """The total set of all letters used across all of the WordChain's words."""
+        return functools.reduce(lambda a, b: a | b, [w.letters for w in self.words])
+
+    def get_best_next_words(self, all_words: LetterBoxedWordList) -> LetterBoxedWordList:
+        """Given a LetterBoxedWordList of all words, return the list of words that could possibly be
+        appended to the WordChain, sorted by how many remaining letters there would be afterwards."""
+        return all_words.filter(lambda w: w.can_follow(self)).sort(self.num_remaining_letters_after_word)
+
+    def num_remaining_letters_after_word(self, word: LetterBoxedWord) -> int:
+        """Given a LetterBoxedWord, return the number of remaining letters IF the word was added."""
+        return len(self.remaining_letters - word.letters)
+
 def parse_arguments() -> argparse.Namespace:
     """Parse the arguments provided to the script."""
     parser = argparse.ArgumentParser()
