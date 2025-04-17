@@ -132,12 +132,7 @@ def main():
     """Execute top-level functionality."""
     args = parse_arguments()
     letter_box = LetterBox.from_str(args.letter_box)
-    word_list = (
-        LetterBoxedWordList.from_file(word_games.ALL_WORDS_FILEPATH)
-        .filter(letter_box.is_word_accepted)
-        .filter(lambda w: len(w) >= MINIMUM_WORD_LENGTH)
-    )
-    breakpoint()  # pylint: disable = forgotten-debug-statement
+    print(letter_box.solve())
 
 
 if __name__ == "__main__":
