@@ -164,6 +164,7 @@ class WordChain(LetterBoxedWordList):
         """Given a LetterBoxedWord, return the number of remaining letters IF the word was added."""
         return len(self.remaining_letters - word.letters)
 
+
 def parse_arguments() -> argparse.Namespace:
     """Parse the arguments provided to the script."""
     parser = argparse.ArgumentParser()
