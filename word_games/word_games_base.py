@@ -132,6 +132,10 @@ class WordList[W: Word](abc.ABC):
         """Set up a WordList by reading Words from a text file."""
         return cls(read_words_from_file(filepath))
 
+    def append(self, word: W):
+        """Append a Word to the WordList."""
+        self.words.append(word)
+
     def copy(self) -> Self:
         """Returns a deep copy of this WordList."""
         return type(self)(self.words[:])
