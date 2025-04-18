@@ -98,9 +98,7 @@ class LetterBox:
     def is_word_accepted(self, word: LetterBoxedWord) -> bool:
         """Examine an input word and determine whether it is valid for use in the LetterBox."""
 
-        word = word if isinstance(word, LetterBoxedWord) else LetterBoxedWord(word)
-
-        if not word.letters <= self.letters:
+        if word.letters - self.letters:
             return False  # If the word contains letters that aren't in the LetterBox, it can't be valid
 
         for current_letter, next_letter in itertools.pairwise(word.full_word):
