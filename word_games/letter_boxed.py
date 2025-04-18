@@ -158,7 +158,7 @@ class WordChain(LetterBoxedWordList):
     @functools.cached_property
     def used_letters(self) -> set[Letter]:
         """The total set of all letters used across all of the WordChain's words."""
-        return functools.reduce(lambda a, b: a | b, [w.letters for w in self.words])
+        return functools.reduce(lambda a, b: a | b, [w.letters for w in self.words], set())
 
     def get_best_next_words(self, all_words: LetterBoxedWordList) -> LetterBoxedWordList:
         """Given a LetterBoxedWordList of all words, return the list of words that could possibly be
