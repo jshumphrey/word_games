@@ -80,7 +80,7 @@ class WordList[W: Word](abc.ABC):
         return other.__add__(self)
 
     def __bool__(self) -> bool:
-        return self.words != []
+        return bool(self.words)
 
     def __contains__(self, word: Word) -> bool:
         return word in self.words
