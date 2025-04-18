@@ -113,6 +113,29 @@ class LetterBox:
 
         return True
 
+    def solve(self) -> list[WordChain]:
+        """Find the solution(s) for the Letter Boxed puzzle that use the fewest number of words."""
+
+        all_valid_words = (
+            LetterBoxedWordList.from_file(word_games.ALL_WORDS_FILEPATH)
+            .filter(lambda w: len(w) >= MINIMUM_WORD_LENGTH)
+            .filter(self.is_word_accepted)
+        )
+
+        # Set a "par" number of words for our future solve attempts by first solving the puzzle greedily.
+        par_words: int = len(greedy_chain := self.solve_greedy(all_valid_words))
+        solutions: list[WordChain] = [greedy_chain]
+
+        # In theory, ANY word might start off the best solution, so we have to try starting from ALL of them.
+        # However, in practice, we'll start off by trying the ones that use the most letters. This will
+        # probably mean that by the time we get down to the not-great words, we've got a pretty solid "par"
+        # dialed in, and we can quickly bail out of any solutions that clearly aren't going to beat the par.
+
+        for starting_word in all_valid_words.sort(lambda w: len(w.letters), reverse = True):
+            chain = WordChain([starting_word], self)
+
+
+        return solutions
 
     def solve_greedy(self, all_valid_words: LetterBoxedWordList) -> WordChain:
         """Find the greedy solution for the Letter Boxed puzzle, where at every step of the process, we
