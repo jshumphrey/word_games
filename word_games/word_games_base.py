@@ -23,6 +23,7 @@ FIVE_LETTER_WORDS_FILEPATH = DATA_FILES_DIRPATH / "five_letter_words.txt"
 Letter = str
 AnyWordList = typing.TypeVar("AnyWordList", bound = "WordList")
 
+
 def read_words_from_file(filepath: str | pathlib.Path) -> Generator[str, None, None]:
     """Open the provided file of words and yield each line from it."""
     with open(filepath, "r", encoding = "utf-8") as infile:
