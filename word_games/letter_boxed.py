@@ -95,16 +95,7 @@ class LetterBox:
 
         return cls(frozenset(frozenset(side) for side in itertools.batched(letters_only, 3)))
 
-    @functools.cache
-    def get_side_with_letter(self, letter: Letter) -> frozenset[Letter]:
-        """Return the side of the LetterBox that contains the provided letter."""
-        for side in self.sides:
-            if letter in side:
-                return side
-
-        raise ValueError(f"Could not find '{letter}' on any of the LetterBox's sides ({self.sides})!")
-
-    def is_word_accepted(self, word: LetterBoxedWord | str) -> bool:
+    def is_word_accepted(self, word: LetterBoxedWord) -> bool:
         """Examine an input word and determine whether it is valid for use in the LetterBox."""
 
         word = word if isinstance(word, LetterBoxedWord) else LetterBoxedWord(word)
