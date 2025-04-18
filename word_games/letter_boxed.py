@@ -181,7 +181,7 @@ def main():
     """Execute top-level functionality."""
     args = parse_arguments()
     letter_box = LetterBox.from_str(args.letter_box)
-    print(letter_box.solve())
+    print([str(chain) for chain in letter_box.solve()])
 
 
 if __name__ == "__main__":
