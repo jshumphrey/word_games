@@ -132,6 +132,11 @@ class WordChain(LetterBoxedWordList):
         super().__init__(words)
         self.letter_box = letter_box
 
+    def __add__(self, other: object) -> Self:
+        if isinstance(other, LetterBoxedWord):
+            return type(self)(self.words + [other], self.letter_box)
+        return NotImplemented
+
     def __str__(self) -> str:
         return " - ".join(map(str, self))
 
