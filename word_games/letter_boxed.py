@@ -1,5 +1,4 @@
 """A script to help find optional solutions to the New York Times' "Letter Boxed" game."""
-# pylint: disable = method-cache-max-size-none
 
 from __future__ import annotations
 
@@ -76,6 +75,11 @@ class LetterBox:
         """The set of all letters across all sides of the LetterBox."""
         return functools.reduce(lambda a, b: a | b, self.sides)
 
+    @functools.cached_property
+    def sides_by_letter(self) -> dict[Letter, frozenset[Letter]]:
+        """A dict mapping the LetterBox's letters to the side they belong to."""
+        return {letter: side for side in self.sides for letter in side}
+
     @classmethod
     def from_str(cls: type[Self], input_str: str) -> Self:
         """Parse the provided input_str and return a LetterBox with the given sides."""
@@ -104,7 +108,7 @@ class LetterBox:
         for current_letter, next_letter in itertools.pairwise(word.full_word):
             if current_letter == next_letter:
                 return False  # Shortcut in case the word has double letters; such words are NEVER valid
-            if next_letter in self.get_side_with_letter(current_letter):
+            if self.sides_by_letter[current_letter] is self.sides_by_letter[next_letter]:
                 return False  # If the next letter is on the same side, it's not valid
 
         return True
