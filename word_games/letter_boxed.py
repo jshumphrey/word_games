@@ -121,6 +121,19 @@ class LetterBox:
         return True
 
 
+    def solve_greedy(self, all_valid_words: LetterBoxedWordList) -> WordChain:
+        """Find the greedy solution for the Letter Boxed puzzle, where at every step of the process, we
+        simply choose the word that uses the most new letters.
+
+        This is probably NOT the optional solution, but it serves as a "par" number of words for any future
+        solution to beat.
+        """
+        while (chain := WordChain([], self)).remaining_letters:
+            chain = chain + chain.get_best_next_words(all_valid_words)[0]
+            print(chain)
+
+        return chain
+
 
 class WordChain(LetterBoxedWordList):
     """A LetterBoxedWordList whose words form a Letter Boxed solution, where each successive word in
