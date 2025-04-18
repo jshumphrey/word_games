@@ -128,7 +128,8 @@ class LetterBox:
         This is probably NOT the optimal solution, but it serves as a "par" number of words for any future
         solution to beat.
         """
-        while (chain := WordChain([], self)).remaining_letters:
+        chain = WordChain([], self)
+        while chain.remaining_letters:
             chain = chain + chain.get_best_next_words(all_valid_words)[0]
             print(chain)
 
