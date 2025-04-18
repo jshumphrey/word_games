@@ -41,13 +41,13 @@ class LetterBoxedWordList(word_games.WordList[LetterBoxedWord]):
     """A WordList specifically tailored to LetterBoxedWords."""
 
     @functools.cached_property
-    def words_by_first_letter(self) -> dict[Letter, list[LetterBoxedWord]]:
+    def words_by_first_letter(self) -> dict[Letter, LetterBoxedWordList]:
         """A dict that organizes the words in the WordList by their first letter.
 
         Caching this dict allows us to avoid sweeping the entire WordList each time we want to find the list
         of words that begin with a particular letter.
         """
-        output_dict = collections.defaultdict(list)
+        output_dict: dict[Letter, LetterBoxedWordList] = collections.defaultdict(LetterBoxedWordList)
         for word in self:
             output_dict[word.first_letter].append(word)
 
