@@ -177,7 +177,10 @@ class WordChain(LetterBoxedWordList):
     def get_best_next_words(self, all_words: LetterBoxedWordList) -> LetterBoxedWordList:
         """Given a LetterBoxedWordList of all words, return the list of words that could possibly be
         appended to the WordChain, sorted by how many remaining letters there would be afterwards."""
-        return all_words.words_by_first_letter[self.last_letter].sort(self.num_remaining_letters_after_word)
+        return (
+            (all_words if not self.words else all_words.words_by_first_letter[self.last_letter])
+            .sort(self.num_remaining_letters_after_word)
+        )
 
     def num_remaining_letters_after_word(self, word: LetterBoxedWord) -> int:
         """Given a LetterBoxedWord, return the number of remaining letters IF the word was added."""
