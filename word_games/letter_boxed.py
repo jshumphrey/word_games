@@ -125,7 +125,7 @@ class LetterBox:
         """Find the greedy solution for the Letter Boxed puzzle, where at every step of the process, we
         simply choose the word that uses the most new letters.
 
-        This is probably NOT the optional solution, but it serves as a "par" number of words for any future
+        This is probably NOT the optimal solution, but it serves as a "par" number of words for any future
         solution to beat.
         """
         while (chain := WordChain([], self)).remaining_letters:
