@@ -132,8 +132,13 @@ class LetterBox:
         # dialed in, and we can quickly bail out of any solutions that clearly aren't going to beat the par.
 
         for starting_word in all_valid_words.sort(lambda w: len(w.letters), reverse = True):
-            chain = WordChain([starting_word], self)
+            # To keep track of which words we've already tried at various depths of the WordChain, we maintain
+            # a stack of LBWLs, with each list in the stack being the words we want to try at that depth.
+            # As we go forward and backtrack, trying, adding and removing words to the WordChain, we'll pare
+            # words away from the topmost LBLW.
 
+            chain = WordChain([starting_word], self)
+            best_words_stack: list[LetterBoxedWordList] = [chain.get_best_next_words(all_valid_words)]
 
         return solutions
 
