@@ -9,7 +9,12 @@ import dataclasses
 import functools
 import pathlib
 import typing
-from typing import Any, Self
+from typing import Any, Final, Self
+
+Letter = str
+Lexicon: typing.TypeAlias = typing.Literal["NWL", "CSW"]
+CrosswordGame: typing.TypeAlias = typing.Literal["Scrabble", "Crossplay"]
+AnyWordList = typing.TypeVar("AnyWordList", bound = "WordList")
 
 THIS_FILE_FILEPATH = pathlib.Path(__file__).resolve()
 WORD_GAMES_CODE_DIRPATH = THIS_FILE_FILEPATH.parent
@@ -19,9 +24,12 @@ TESTS_DIRPATH = WORD_GAMES_TOPLEVEL_DIRPATH / "tests"
 
 ALL_WORDS_FILEPATH = DATA_FILES_DIRPATH / "words_alpha.txt"
 FIVE_LETTER_WORDS_FILEPATH = DATA_FILES_DIRPATH / "five_letter_words.txt"
+NWL_FILEPATH = DATA_FILES_DIRPATH / "nwl.txt"
+CSW_FILEPATH = DATA_FILES_DIRPATH / "csw.txt"
+LEXICON_FILEPATHS: Final[dict[Lexicon, pathlib.Path]] = {"NWL": NWL_FILEPATH, "CSW": CSW_FILEPATH}
 
-Letter = str
-AnyWordList = typing.TypeVar("AnyWordList", bound = "WordList")
+TILE_DATA_FILEPATH = DATA_FILES_DIRPATH / "tile_data.toml"
+
 
 def read_words_from_file(filepath: str | pathlib.Path) -> Generator[str, None, None]:
     """Open the provided file of words and yield each line from it."""
@@ -37,6 +45,12 @@ class Word(abc.ABC):
 
     def __contains__(self, letter: Letter) -> bool:
         return letter in self.letters
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, type(self)) and other.full_word == self.full_word
+
+    def __iter__(self) -> Generator[Letter]:
+        yield from self.full_word
 
     def __len__(self) -> int:
         return len(self.full_word)
@@ -132,3 +146,13 @@ class WordList[W: Word](abc.ABC):
     def sort(self, sort_function: Callable[[W], Any], reverse: bool = False):
         """Sort self._words according to the provided callable."""
         self.words.sort(key = sort_function, reverse = reverse)
+        return self
+
+
+class GenericWordList(WordList[Word]):
+    """A "generic" WordList implementation for use-cases that require no special logic for Words."""
+
+    @property
+    def word_factory(self) -> Callable[[str], Word]:
+        """Implement word_factory for GenericBoxedWordList."""
+        return Word
