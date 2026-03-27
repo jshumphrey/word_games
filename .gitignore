@@ -4,3 +4,4 @@ dist
 __pycache__/
 data_files/nwl.txt
 data_files/csw.txt
+/*.csv
