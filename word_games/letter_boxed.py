@@ -146,6 +146,8 @@ class LetterBox:
         """
         chain = WordChain([], self)
         while chain.remaining_letters:
+            # BUG: If the chain greedies itself into a situation where there's no valid words anymore
+            # but there's still letters we need to play, what do we do now? We need to back up the chain.
             chain = chain + chain.get_best_next_words(all_valid_words)[0]
             print(chain)
 
