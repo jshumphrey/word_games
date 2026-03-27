@@ -166,6 +166,8 @@ class WordChain(LetterBoxedWordList):
 
     def __add__(self, other: object) -> Self:
         if isinstance(other, LetterBoxedWord):
+            if not other.can_follow(self):
+                raise ValueError(f"It's not valid to add the word {other} to the WordChain {self}!")
             return type(self)(self.words + [other], self.letter_box)
         return NotImplemented
 
