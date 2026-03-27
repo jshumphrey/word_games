@@ -2,3 +2,5 @@
 .vscode
 dist
 __pycache__/
+data_files/csw.txt
+data_files/nwl.txt
